@@ -21,7 +21,7 @@ def compute_gradient_sgd(
         learning_rate = 0.1,
         ):
     import theano.tensor as T
-    print '..computing sgd gradient'
+    print '..computing sgd gradient(learning_rate %0.8f)' % learning_rate
     updates = [] # final updates
 
     # coonstruct params and eps
@@ -29,7 +29,6 @@ def compute_gradient_sgd(
         for param in layer.params:
             updates.append((param.data, param.data - learning_rate * param.eps * T.grad(cost, param.data)))
     return updates
-
 
 def compute_gradient_momemtent(
         cost,
@@ -40,17 +39,23 @@ def compute_gradient_momemtent(
     assert momentum >=0 and momentum <= 1
     import theano
     import theano.tensor as T
-    print "..computing momentum gradient"
+    print "..computing momentum gradient(learning_rate %0.8f, momentum %0.2f)" % (learning_rate, momentum)
     updates = []
-
+    params = []
+    param_updates = []
     for layer in layers:
         for param in layer.params:
+            # store the tensor variables
             param_update = theano.shared(param.data.get_value()*0., broadcastable=param.data.broadcastable)
-            updates.append((param.data, param.data + param_update))
+            params.append(param.data)
+            param_updates.append(param_update)
+
             updates.append((param_update, momentum * param_update - learning_rate * param.eps * T.grad(cost, param.data)))
+
+    for i in xrange(len(params)):
+        updates.append((params[i], params[i] + param_updates[i]))
+
     return updates
-
-
 
 def ignite_fast_training(
         models,
@@ -117,7 +122,6 @@ def ignite_fast_training(
             done_looping = True
             break
     end_time = time.clock()
-
 
     print '..Optimization complete, consumed time: %0.2f min' % ((end_time - start_time)/ 60.)
     print '..Best valid score is %0.4f, obtained at epoch %i' % (best_valid_score, best_valid_epoch)

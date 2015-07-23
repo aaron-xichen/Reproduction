@@ -8,9 +8,9 @@ import numpy as np
 patch_shape = (33,33)
 nkerns = [64, 32]
 
-batch_size = 200
-learning_rate = 1e-8
-weight_decay = 0.2
+batch_size = 5000
+learning_rate = 3e-7
+weight_decay = 2
 
 # prepare the data
 print ".preparing data"
@@ -78,13 +78,14 @@ layers = [layer0_conv, layer1_conv, layer2_conv]
 diff = normal_input.reshape((batch_size, 1*patch_shape[0]*patch_shape[1])) \
         - layer3_output.reshape((batch_size, 1*patch_shape[0]*patch_shape[1]))
 
-mse = T.mean(T.sum(T.sqr(diff), axis=1))
+mse = (diff**2).sum(axis=1).mean()
+# mse = T.mean(T.sum(diff**2, axis=1))
 cost = context.append_l1_norm(mse, layers, alpha=weight_decay) # append l1 norm
 cost = context.append_l2_norm(cost, layers, alpha=weight_decay) # append l2 norm
 
 # compute the gradient
 updates = context.compute_gradient_sgd(cost, layers, learning_rate=learning_rate)
-# updates = context.compute_gradient_momemtent(cost, layers, learning_rate=learning_rate)
+# updates = context.compute_gradient_momemtent(cost, layers, learning_rate=learning_rate, momentum=0.9)
 
 # build the train function
 print ".building train model"
@@ -121,7 +122,6 @@ test_model = theano.function(
         )
 
 models = [train_model, valid_model, test_model]
-# n_batches= [len(dataset.get_value()) / batch_size for dataset in datasets]
 n_batches = [len(datasets[0].get_value()) // batch_size, len(datasets[2].get_value()) // batch_size, len(datasets[4].get_value()) // batch_size]
 
 print ".training"
@@ -131,5 +131,6 @@ context.ignite_fast_training(
         layers = layers,
         n_epochs = 100,
         # param_snapshot_path = 'params.npy',
-        save_period = 5
+        save_period = 5,
+        patience_increase = 10,
         )

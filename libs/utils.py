@@ -482,9 +482,10 @@ def np2lmdb(data, lmdb_path, labels=None, shape=None):
     from caffe import io
     records = []
     assert isinstance(data, np.ndarray)
+    data = data.astype(np.float)
     if labels is not None:
         assert len(data) == len(labels)
-        assert isinstance(labels[0], np.int)
+        labels = np.asarray(labels, dtype=np.int)
 
     for i, each in enumerate(data):
         try:
@@ -603,21 +604,6 @@ def PIL2array(image_file_path):
     im = Image.open(image_file_path).convert('LA')
     return np.array(im.getdata(), np.uint8)[:,0].reshape(im.size[1], im.size[0])
 
-# def read_images(dir_path, is_scale=True, img_nums = None):
-    # from sklearn.preprocessing import scale
-    # images = []
-    # for root, dirs, files in os.walk(dir_path):
-        # for file in files:
-            # path = os.path.join(root, file)
-            # print path
-            # data = np.asarray(PIL2array(path), dtype=np.float)
-            # if is_scale:
-                # data = scale(data)
-            # images.append(data)
-            # if img_nums is not None and len(images) >= img_nums:
-                # return images
-    # return images
-
 def sub_images(
         dir_path,
         patch_shape = (32, 32),
@@ -712,9 +698,11 @@ def split_wav(wav_file, ref_file, is_save=False, dir_name="split"):
             word = fields[2]
 
             fr.seek(begin)
-            sli = fr.read_frames(end-begin)
+            sli = fr.read_frames(end-begin+1)
             if not slices.has_key(word):
                 slices[word] = []
+            # if(len(sli) == 1):
+                # print word, line
             slices[word].append(sli)
             if is_save:
                 path = shutil.os.path.join(dir_name, str(i) + "-" + word + '.wav')

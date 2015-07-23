@@ -9,16 +9,19 @@ import PIL.Image as Image
 
 def synthesize_training_image(
         dir_paths,
-        output_dir = '/share/blur_images/all_in_one',
-        patch_shape = (33, 33),
-        stride_shape = (33, 33),
-        scale_ratio = 3,
+        output_dir = '/share/blur_images/all_in_one2/',
+        patch_shape = (48, 48),
+        stride_shape = (48, 48),
+        scale_ratio = 6,
         is_shuffle = True,
         is_scale = False,
         is_noise = False,
         ):
 
     # read and split images, type is list
+    print "patch_shape: {}".format(patch_shape)
+    print "stride_shape: {}".format(stride_shape)
+    print "scale ratio: {}".format(scale_ratio)
     images = []
     for dir_path in dir_paths:
         dir_path = utils.complement_path(dir_path)
@@ -84,7 +87,7 @@ def synthesize_training_image(
 
 def synthesize_predicting_images(
         data_paths,
-        output_dir = "/share/blur_images/all_in_one/"
+        output_dir = "/share/blur_images/all_in_one2/"
         ):
     images = []
     for data_path in data_paths:
@@ -104,8 +107,8 @@ def synthesize_predicting_images(
     np.save(os.path.join(output_dir,'testing_full_images.npy'), images)
 
 if __name__ == "__main__":
-    # synthesize_training_image(
-            # dir_paths=['/share/blur_images/mixture/', '/share/blur_images/poor_accuracy'])
+    synthesize_training_image(
+            dir_paths=['/share/blur_images/mixture/', '/share/blur_images/poor_accuracy'])
     synthesize_predicting_images(
             data_paths = ["/share/TestImage/mohu"]
             )
